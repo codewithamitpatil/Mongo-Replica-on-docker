@@ -1,0 +1,53 @@
+version: '3'
+services:
+  mongo-1:
+    image: "mongo-start"
+    build: ./mongo-1
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo-1/data:/data/db
+    depends_on:
+      - "mongo-2"
+      - "mongo-3"
+
+  mongo-2:
+    image: "mongo"
+    command: --replSet rs0 --oplogSize 128
+    ports:
+      - "27018:27017"
+    volumes:
+      - ./mongo-2/data:/data/db
+
+  mongo-3:
+    image: "mongo"
+    command: --replSet rs0 --oplogSize 128
+    ports:
+      - "27019:27017"
+    volumes:
+      - ./mongo-3/data:/data/db
+
+  setup-rs:
+    image: "setup-rs"
+    build: ./setup
+    depends_on:
+      - "mongo-1"
+
+  adminmongo:
+    image: "mrvautin/adminmongo"
+    ports:
+      - "1234:1234"
+    environment:
+      - HOST=0.0.0.0
+
+  #Test Application
+  web-app:
+    image: docker-node-express-mongoreplicaset-app
+    build: ./web-site
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web-site:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - "setup-rs"
