@@ -1,37 +1,37 @@
 version: '3'
 services:
-  mongo-1:
+  mongo-rs0-1:
     image: "mongo-start"
-    build: ./mongo-1
+    build: ./mongo-rs0-1
     ports:
       - "27017:27017"
     volumes:
-      - ./mongo-1/data:/data/db
+      - ./mongo-rs0-1/data:/data/db
     depends_on:
-      - "mongo-2"
-      - "mongo-3"
+      - "mongo-rs0-2"
+      - "mongo-rs0-3"
 
-  mongo-2:
+  mongo-rs0-2:
     image: "mongo"
     command: --replSet rs0 --oplogSize 128
     ports:
       - "27018:27017"
     volumes:
-      - ./mongo-2/data:/data/db
+      - ./mongo-rs0-2/data:/data/db
 
-  mongo-3:
+  mongo-rs0-3:
     image: "mongo"
     command: --replSet rs0 --oplogSize 128
     ports:
       - "27019:27017"
     volumes:
-      - ./mongo-3/data:/data/db
+      - ./mongo-rs0-3/data:/data/db
 
   setup-rs:
     image: "setup-rs"
     build: ./setup
     depends_on:
-      - "mongo-1"
+      - "mongo-rs0-1"
 
   adminmongo:
     image: "mrvautin/adminmongo"
@@ -51,5 +51,3 @@ services:
       - /usr/src/app/node_modules
     depends_on:
       - "setup-rs"
-
-docker exec  mongo-replica-on-docker_mongo-1_1 bash -c 'mongo --eval "rs.status();"'
